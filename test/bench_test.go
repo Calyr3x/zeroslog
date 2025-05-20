@@ -21,47 +21,6 @@ var (
 	errTest    = errors.New("this is an error")
 )
 
-/*func BenchmarkZeroLog_Info(b *testing.B) {
-	w := zerolog.ConsoleWriter{
-		Out:        io.Discard,
-		TimeFormat: "2006-01-02 15:04:05.000 -07:00",
-		NoColor:    false,
-	}
-
-	zlog := zerolog.New(w)
-
-	benchLog(b, func() {
-		zlog.Info().
-			Str("method", fullMethod).
-			Dur("duration", dur).
-			Msg("gRPC call succeeded")
-	})
-}
-
-func BenchmarkZap_Info(b *testing.B) {
-	encCfg := zapcore.EncoderConfig{
-		TimeKey:     "ts",
-		MessageKey:  "msg",
-		LevelKey:    "level",
-		EncodeTime:  zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05.000 -07:00"),
-		EncodeLevel: zapcore.CapitalLevelEncoder,
-	}
-
-	core := zapcore.NewCore(
-		zapcore.NewConsoleEncoder(encCfg),
-		zapcore.AddSync(io.Discard),
-		zap.InfoLevel,
-	)
-	zlogger := zap.New(core).Sugar()
-
-	benchLog(b, func() {
-		zlogger.Infow("gRPC call succeeded",
-			"method", fullMethod,
-			"duration", dur,
-		)
-	})
-}*/
-
 func BenchmarkSlog_Info(b *testing.B) {
 	slogLogger := slog.New(
 		slog.NewTextHandler(io.Discard, &slog.HandlerOptions{
