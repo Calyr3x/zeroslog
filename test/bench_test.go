@@ -32,25 +32,22 @@ func BenchmarkSlog_Info(b *testing.B) {
 		slogLogger.Info("gRPC call succeeded",
 			"method", fullMethod,
 			"duration", dur,
-			"version", version,
-			"someFloat", someFloat,
 		)
 	})
 }
 
 func BenchmarkZeroSLog_Info(b *testing.B) {
-	logger := zeroslog.New(
+	logger := slog.New(zeroslog.New(
 		zeroslog.WithTimeFormat("2006-01-02 15:04:05.000 -07:00"),
 		zeroslog.WithOutput(io.Discard),
 		zeroslog.WithColors(),
-	)
+		zeroslog.WithMinLevel(0),
+	))
 
 	benchLog(b, func() {
 		logger.Info("gRPC call succeeded",
 			"method", fullMethod,
 			"duration", dur,
-			"version", version,
-			"someFloat", someFloat,
 		)
 	})
 }
@@ -66,10 +63,8 @@ func BenchmarkLogrus_Info(b *testing.B) {
 
 	benchLog(b, func() {
 		l.WithFields(logrus.Fields{
-			"method":    fullMethod,
-			"duration":  dur,
-			"version":   version,
-			"someFloat": someFloat,
+			"method":   fullMethod,
+			"duration": dur,
 		}).Info("gRPC call succeeded")
 	})
 }
@@ -91,11 +86,11 @@ func BenchmarkSlog_Error(b *testing.B) {
 }
 
 func BenchmarkZeroSLog_Error(b *testing.B) {
-	logger := zeroslog.New(
+	logger := slog.New(zeroslog.New(
 		zeroslog.WithTimeFormat("2006-01-02 15:04:05.000 -07:00"),
 		zeroslog.WithOutput(io.Discard),
 		zeroslog.WithColors(),
-	)
+	))
 
 	benchLog(b, func() {
 		logger.Error("gRPC call succeeded",

@@ -40,7 +40,7 @@ var (
 
 func appendVal(b *bytes.Buffer, v any) {
 	if v == nil {
-		b.WriteString("null")
+		b.WriteString("nil")
 		return
 	}
 	switch vv := v.(type) {
@@ -53,15 +53,19 @@ func appendVal(b *bytes.Buffer, v any) {
 			b.WriteString(vv)
 		}
 	case int:
-		b.Write(strconv.AppendInt(nil, int64(vv), 10))
+		var num [32]byte
+		b.Write(strconv.AppendInt(num[:0], int64(vv), 10))
 	case int64:
-		b.Write(strconv.AppendInt(nil, vv, 10))
+		var num [64]byte
+		b.Write(strconv.AppendInt(num[:0], vv, 10))
 	case time.Duration:
 		b.WriteString(vv.String())
 	case float64:
-		b.Write(strconv.AppendFloat(nil, vv, 'f', -1, 64))
+		var num [64]byte
+		b.Write(strconv.AppendFloat(num[:0], vv, 'f', -1, 64))
 	case float32:
-		b.Write(strconv.AppendFloat(nil, float64(vv), 'f', -1, 32))
+		var num [32]byte
+		b.Write(strconv.AppendFloat(num[:0], float64(vv), 'f', -1, 64))
 	case error:
 		b.WriteString(vv.Error())
 	case bool:

@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-type handler struct {
+type Handler struct {
 	out      io.Writer
 	timeFmt  string
 	minLevel slog.Level
@@ -20,34 +20,34 @@ type handler struct {
 	groups   []string
 }
 
-type Option func(*handler)
+type Option func(*Handler)
 
 func WithTimeFormat(format string) Option {
-	return func(h *handler) {
+	return func(h *Handler) {
 		h.timeFmt = format
 	}
 }
 
 func WithOutput(w io.Writer) Option {
-	return func(h *handler) {
+	return func(h *Handler) {
 		h.out = w
 	}
 }
 
 func WithMinLevel(level slog.Level) Option {
-	return func(h *handler) {
+	return func(h *Handler) {
 		h.minLevel = level
 	}
 }
 
 func WithColors() Option {
-	return func(h *handler) {
+	return func(h *Handler) {
 		h.color = true
 	}
 }
 
-func New(opts ...Option) *slog.Logger {
-	h := &handler{
+func New(opts ...Option) *Handler {
+	h := &Handler{
 		out:      os.Stdout,
 		timeFmt:  time.RFC3339,
 		minLevel: slog.LevelInfo,
@@ -56,14 +56,18 @@ func New(opts ...Option) *slog.Logger {
 	for _, opt := range opts {
 		opt(h)
 	}
-	return slog.New(h)
+	return h
 }
 
-func (h *handler) Enabled(_ context.Context, l slog.Level) bool {
+func (h *Handler) Enabled(_ context.Context, l slog.Level) bool {
 	return l >= h.minLevel
 }
 
-func (h *handler) Handle(_ context.Context, r slog.Record) error {
+func (h *Handler) Handle(_ context.Context, r slog.Record) error {
+	if !h.Enabled(nil, r.Level) {
+		return nil
+	}
+
 	buf := bufPool.Get().(*bytes.Buffer)
 	buf.Reset()
 
@@ -78,7 +82,7 @@ func (h *handler) Handle(_ context.Context, r slog.Record) error {
 	buf.Write(tsBuf)
 	*tsPtr = tsBuf
 	tsPool.Put(tsPtr)
-	buf.WriteString("] ")
+	buf.Write([]byte{']', ' '})
 
 	// ----- message -----
 	buf.WriteString(r.Message)
@@ -93,7 +97,7 @@ func (h *handler) Handle(_ context.Context, r slog.Record) error {
 			}
 			buf.WriteString(g)
 		}
-		buf.WriteString("] ")
+		buf.Write([]byte{']', ' '})
 	}
 
 	// ----- previous attrs -----
@@ -135,11 +139,11 @@ func (h *handler) Handle(_ context.Context, r slog.Record) error {
 	return nil
 }
 
-func (h *handler) WithAttrs(attrs []slog.Attr) slog.Handler {
+func (h *Handler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	newAttrs := make([]slog.Attr, 0, len(h.attrs)+len(attrs))
 	newAttrs = append(newAttrs, h.attrs...)
 	newAttrs = append(newAttrs, attrs...)
-	return &handler{
+	return &Handler{
 		out:      h.out,
 		timeFmt:  h.timeFmt,
 		minLevel: h.minLevel,
@@ -149,12 +153,12 @@ func (h *handler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	}
 }
 
-func (h *handler) WithGroup(group string) slog.Handler {
+func (h *Handler) WithGroup(group string) slog.Handler {
 	newGroups := append([]string{}, h.groups...)
 	if group != "" {
 		newGroups = append(newGroups, group)
 	}
-	return &handler{
+	return &Handler{
 		out:      h.out,
 		timeFmt:  h.timeFmt,
 		minLevel: h.minLevel,
