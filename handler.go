@@ -48,7 +48,7 @@ func WithColors() Option {
 
 func New(opts ...Option) *Handler {
 	h := &Handler{
-		out:      os.Stdout,
+		out:      os.Stderr,
 		timeFmt:  time.RFC3339,
 		minLevel: slog.LevelInfo,
 		color:    false,
@@ -63,8 +63,10 @@ func (h *Handler) Enabled(_ context.Context, l slog.Level) bool {
 	return l >= h.minLevel
 }
 
+var bg = context.Background()
+
 func (h *Handler) Handle(_ context.Context, r slog.Record) error {
-	if !h.Enabled(nil, r.Level) {
+	if !h.Enabled(bg, r.Level) {
 		return nil
 	}
 

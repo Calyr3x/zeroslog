@@ -2,13 +2,11 @@ package test
 
 import (
 	"errors"
-	"github.com/Calyr3x/zeroslog"
+	"github.com/calyrexx/zeroslog"
 	"io"
 	"log/slog"
 	"testing"
 	"time"
-
-	_ "github.com/rs/zerolog/log"
 
 	"github.com/sirupsen/logrus"
 )
@@ -32,6 +30,8 @@ func BenchmarkSlog_Info(b *testing.B) {
 		slogLogger.Info("gRPC call succeeded",
 			"method", fullMethod,
 			"duration", dur,
+			"version", version,
+			"someFloat", someFloat,
 		)
 	})
 }
@@ -48,6 +48,8 @@ func BenchmarkZeroSLog_Info(b *testing.B) {
 		logger.Info("gRPC call succeeded",
 			"method", fullMethod,
 			"duration", dur,
+			"version", version,
+			"someFloat", someFloat,
 		)
 	})
 }
@@ -63,8 +65,10 @@ func BenchmarkLogrus_Info(b *testing.B) {
 
 	benchLog(b, func() {
 		l.WithFields(logrus.Fields{
-			"method":   fullMethod,
-			"duration": dur,
+			"method":    fullMethod,
+			"duration":  dur,
+			"version":   version,
+			"someFloat": someFloat,
 		}).Info("gRPC call succeeded")
 	})
 }
